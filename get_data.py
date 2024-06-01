@@ -6,18 +6,20 @@ c = wmi.WMI()
 # Obtener nombre del SO
 for os in c.Win32_OperatingSystem():
     NombreSO = os.Caption
+    if NombreSO.startswith("Microsoft "):
+        NombreSO = NombreSO.replace("Microsoft ", "")
 
 # Obtener tipo de sistema
 for cs in c.Win32_ComputerSystem():
     TipoSistema = cs.SystemType
+    if TipoSistema == "x64-based PC":
+        TipoSistema = "64 bits"
+    elif TipoSistema == "x86-based PC":
+        TipoSistema = "32 bits"
 
 # Obtener nombre del sistema
 for cs in c.Win32_ComputerSystem():
     NombreSistema = cs.Name
-
-# Obtener modelo del sistema
-for cs in c.Win32_ComputerSystem():
-    ModeloSistema = cs.Model
 
 # Obtener producto de la placa base
 for bb in c.Win32_BaseBoard():
@@ -31,6 +33,12 @@ for processor in c.Win32_Processor():
 for cs in c.Win32_ComputerSystem():
     MemoriaRAM = round(int(cs.TotalPhysicalMemory) / (1024**3), 2)
 
+# Obtener información de cada banco de memoria
+BancosMemoria = ""
+for memoria in c.Win32_PhysicalMemory():
+    tamaño = round(int(memoria.Capacity) / (1024**3), 2)  # Convertir bytes a GB
+    BancosMemoria += f"Banco: {memoria.DeviceLocator}, Capacidad: {tamaño} GB\n"
+
 # Obtener unidades de disco
 UnidadesDisco = ""
 for disk in c.Win32_DiskDrive():
@@ -39,20 +47,17 @@ for disk in c.Win32_DiskDrive():
         tamaño = round(int(disk.Size) / (1024**3), 2)
     else:
         tamaño = "Desconocido"
-    UnidadesDisco += f"Modelo: {modelo}, Tamaño: {tamaño} GB\n"
-
+    UnidadesDisco += f"Disco: {modelo}, Capacidad: {tamaño} GB\n"
 
 # Crear el contenido del archivo de texto
 contenido_archivo = f"""
 Nombre de SO: {NombreSO}
 Tipo de sistema: {TipoSistema}
-Nombre del sistema: {NombreSistema}
-Modelo del sistema: {ModeloSistema}
-Producto de la placa base: {ProductoPlacaBase}
+Nombre del dispositivo: {NombreSistema}
+Placa Base: {ProductoPlacaBase}
 Procesador: {Procesador}
-Memoria física instalada (RAM): {MemoriaRAM} GB
-Unidades de disco:
-{UnidadesDisco}
+Memoria RAM: {MemoriaRAM} GB
+{BancosMemoria}{UnidadesDisco}
 """
 
 # Ruta del archivo de texto
