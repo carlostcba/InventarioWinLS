@@ -39,11 +39,12 @@ for cs in c.Win32_ComputerSystem():
 bancos_memoria = []
 for memoria in c.Win32_PhysicalMemory():
     tamaño = round(int(memoria.Capacity) / (1024**3), 2)  # Convertir bytes a GB
-    bancos_memoria.append(f"{memoria.DeviceLocator}: {tamaño} GB")
+    if tamaño > 0:
+        bancos_memoria.append((memoria.DeviceLocator, tamaño))
 
-# Completar hasta 4 bancos de memoria
+# Completar hasta 4 bancos de memoria con valores nulos si es necesario
 while len(bancos_memoria) < 4:
-    bancos_memoria.append("")
+    bancos_memoria.append((None, None))
 
 # Obtener unidades de disco
 discos = []
@@ -52,26 +53,38 @@ for disk in c.Win32_DiskDrive():
     if disk.Size is not None:
         tamaño = round(int(disk.Size) / (1024**3), 2)
     else:
-        tamaño = "Desconocido"
-    discos.append(f"{modelo}, Capacidad: {tamaño} GB")
+        tamaño = 0  # Si el tamaño es desconocido, se establece en 0 para excluirlo
+    if tamaño > 0:
+        discos.append((modelo, tamaño))
 
-# Completar hasta 4 discos
+# Completar hasta 4 discos con valores nulos si es necesario
 while len(discos) < 4:
-    discos.append("")
+    discos.append((None, None))
 
 # Conectar a la base de datos MySQL
 conn = mysql.connector.connect(
     host='localhost',
     user='tu_usuario',
     password='tu_contraseña',
-    database='tu_base_de_datos'
+    database='inventoryDB'  # Asegúrate de usar el nombre correcto de la base de datos
 )
 cursor = conn.cursor()
 
 # Insertar los datos en la tabla
 query = """
-INSERT INTO inventoryLS (nameOS, tipoOS, hostname, motherboard, totalRAM, bank1, bank2, bank3, bank4, disk1, disk2, disk3, disk4, date)
-VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+INSERT INTO inventoryLS (
+    nameOS, tipoOS, hostname, motherboard, totalRAM, 
+    bank1_name, bank1_capacity, bank2_name, bank2_capacity, 
+    bank3_name, bank3_capacity, bank4_name, bank4_capacity, 
+    disk1_model, disk1_capacity, disk2_model, disk2_capacity, 
+    disk3_model, disk3_capacity, disk4_model, disk4_capacity, date)
+VALUES (
+    %s, %s, %s, %s, %s, 
+    %s, %s, %s, %s, 
+    %s, %s, %s, %s, 
+    %s, %s, %s, %s, 
+    %s, %s, %s
+)
 """
 values = (
     NombreSO,
@@ -79,14 +92,14 @@ values = (
     NombreSistema,
     ProductoPlacaBase,
     MemoriaRAM,
-    bancos_memoria[0],
-    bancos_memoria[1],
-    bancos_memoria[2],
-    bancos_memoria[3],
-    discos[0],
-    discos[1],
-    discos[2],
-    discos[3],
+    bancos_memoria[0][0], bancos_memoria[0][1],
+    bancos_memoria[1][0], bancos_memoria[1][1],
+    bancos_memoria[2][0], bancos_memoria[2][1],
+    bancos_memoria[3][0], bancos_memoria[3][1],
+    discos[0][0], discos[0][1],
+    discos[1][0], discos[1][1],
+    discos[2][0], discos[2][1],
+    discos[3][0], discos[3][1],
     datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 )
 
