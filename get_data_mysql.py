@@ -31,14 +31,25 @@ for bb in c.Win32_BaseBoard():
 for processor in c.Win32_Processor():
     Procesador = processor.Name
 
+# Obtener memoria física instalada (RAM)
+for cs in c.Win32_ComputerSystem():
+    MemoriaRAM = round(int(cs.TotalPhysicalMemory) / (1024**3), 2)
+    if MemoriaRAM >= 1024:  # Si la memoria es mayor o igual a 1 TB
+        MemoriaRAM = round(MemoriaRAM / 1024, 2)
+        unidad_medida = "TB"
+    elif MemoriaRAM >= 1:  # Si la memoria es mayor o igual a 1 GB
+        unidad_medida = "GB"
+    else:  # Si la memoria es menor a 1 GB
+        MemoriaRAM = round(MemoriaRAM * 1024, 2)
+        unidad_medida = "MB"
+    MemoriaRAM = f"{MemoriaRAM} {unidad_medida}"
+
 # Obtener información de cada banco de memoria
 bancos_memoria = []
-totalRAM = 0  # Inicializar totalRAM
 for memoria in c.Win32_PhysicalMemory():
     tamaño = round(int(memoria.Capacity) / (1024**3), 2)  # Convertir bytes a GB
     if tamaño > 0:
         bancos_memoria.append(f"{tamaño} GB")
-        totalRAM += tamaño  # Sumar el tamaño al total de RAM
 
 # Completar hasta 4 bancos de memoria con valores nulos si es necesario
 while len(bancos_memoria) < 4:
@@ -59,6 +70,26 @@ for disk in c.Win32_DiskDrive():
 while len(discos) < 4:
     discos.append((None, None))
 
+# Obtener direcciones MAC e IP de las interfaces de red físicas
+mac_addresses = []
+ip_addresses = []
+for nic in c.Win32_NetworkAdapterConfiguration(IPEnabled=True):
+    if nic.MACAddress is not None and "Virtual" not in nic.Description:
+        mac_addresses.append(nic.MACAddress)
+        if nic.IPAddress:
+            ip_addresses.extend(nic.IPAddress)
+
+# Seleccionar la IP de la interfaz de red principal (si está disponible)
+ip_principal = None
+for ip in ip_addresses:
+    if ip.startswith('192.168.') or ip.startswith('10.') or ip.startswith('172.'):
+        ip_principal = ip
+        break
+
+# Completar hasta 4 direcciones MAC con valores nulos si es necesario
+while len(mac_addresses) < 4:
+    mac_addresses.append(None)
+
 # Conectar a la base de datos MySQL
 conn = mysql.connector.connect(
     host='localhost',
@@ -70,16 +101,15 @@ cursor = conn.cursor()
 
 # Insertar los datos en la tabla
 query = """
-INSERT INTO inventoryLS (nameOS, tipoOS, hostname, motherboard, processor, totalRAM, bank1, bank2, bank3, bank4, disk1_model, disk1_capacity, disk2_model, disk2_capacity, disk3_model, disk3_capacity, disk4_model, disk4_capacity, date)
-VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+INSERT INTO inventoryLS (nameOS, tipoOS, hostname, motherboard, totalRAM, bank1, bank2, bank3, bank4, disk1_model, disk1_capacity, disk2_model, disk2_capacity, disk3_model, disk3_capacity, disk4_model, disk4_capacity, mac1, mac2, mac3, mac4, ip_principal, date)
+VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
 """
 values = (
     NombreSO,
     TipoSistema,
     NombreSistema,
     ProductoPlacaBase,
-    Procesador,
-    f"{totalRAM} GB",  # Formatear totalRAM con unidad GB
+    MemoriaRAM,
     bancos_memoria[0],
     bancos_memoria[1],
     bancos_memoria[2],
@@ -92,6 +122,11 @@ values = (
     discos[2][1],
     discos[3][0],
     discos[3][1],
+    mac_addresses[0],
+    mac_addresses[1],
+    mac_addresses[2],
+    mac_addresses[3],
+    ip_principal,
     datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 )
 
