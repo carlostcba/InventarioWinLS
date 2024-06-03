@@ -3,7 +3,7 @@ CREATE DATABASE IF NOT EXISTS inventoryDB;
 USE inventoryDB;
 
 CREATE TABLE `inventoryls` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `nameOS` varchar(255) NOT NULL,
   `tipoOS` varchar(50) NOT NULL,
   `hostname` varchar(255) NOT NULL,
@@ -22,10 +22,11 @@ CREATE TABLE `inventoryls` (
   `disk3_capacity` varchar(255) DEFAULT NULL,
   `disk4_model` varchar(255) DEFAULT NULL,
   `disk4_capacity` varchar(255) DEFAULT NULL,
-  `mac1` varchar(17), 
-  `mac2` varchar(17), 
-  `mac3` varchar(17), 
-  `mac4` varchar(17), 
+  `mac1` varchar(17) DEFAULT NULL, 
+  `mac2` varchar(17) DEFAULT NULL, 
+  `mac3` varchar(17) DEFAULT NULL, 
+  `mac4` varchar(17) DEFAULT NULL, 
   `ip_principal` varchar(15),
-  `date` timestamp NOT NULL DEFAULT current_timestamp()
+  `date` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
