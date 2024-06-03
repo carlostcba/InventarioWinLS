@@ -27,6 +27,7 @@
             margin: 10px;
             width: 300px;
             border-radius: 8px;
+            position: relative;
         }
         .box.red {
             border-color: red;
@@ -48,6 +49,9 @@
             text-align: center;
             border-radius: 4px;
             margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .data-field {
             padding: 5px;
@@ -60,6 +64,9 @@
         }
         .previous {
             color: red;
+        }
+        .checkbox-container {
+            position: right;
         }
     </style>
 </head>
@@ -143,8 +150,12 @@ if ($result->num_rows > 0) {
 
         echo "<div class='$boxClass'>";
 
-        // Resaltar y centrar el hostname
-        echo "<div class='hostname'>" . $row['hostname'] . "</div>";
+        // Resaltar y centrar el hostname con el checkbox solo si es blinking o red
+        echo "<div class='hostname'>" . $row['hostname'];
+        if ($boxClass == 'box blinking' || $boxClass == 'box red') {
+            echo "<div class='checkbox-container'><input type='checkbox' onchange='toggleBlinking(this)'></div>";
+        }
+        echo "</div>";
 
         // Mostrar nameOS y tipoOS juntos
         if (!is_null($row['nameOS']) && !is_null($row['tipoOS'])) {
@@ -215,6 +226,20 @@ if ($result->num_rows > 0) {
 $conn->close();
 
 ?>
+
+<!-- Script para cambiar el estado de los cuadros -->
+<script>
+    function toggleBlinking(checkbox) {
+        const box = checkbox.closest('.box');
+        if (box.classList.contains('red')) {
+            box.style.display = 'none';
+        } else if (box.classList.contains('blinking')) {
+            box.classList.remove('blinking');
+            box.classList.add('green');
+            checkbox.parentElement.style.display = 'none'; // Ocultar el checkbox después del cambio
+        }
+    }
+</script>
 
 </body>
 </html>
