@@ -173,7 +173,7 @@ if ($result->num_rows > 0) {
 
         // Mostrar otros datos no nulos
         foreach ($row as $key => $value) {
-            if ($key != 'id' && $key != 'hostname' && $key != 'nameOS' && $key != 'tipoOS' && $key != 'processor' && !is_null($value)) {
+            if ($key != 'id' && $key != 'hostname' && $key != 'nameOS' && $key != 'tipoOS' && $key != 'processor' && $key != 'status' && !is_null($value)) {
                 // Agregar etiquetas específicas para bancos de memoria y RAM total
                 if (strpos($key, 'bank') === 0) {
                     $bankNumber = str_replace('bank', '', $key);
