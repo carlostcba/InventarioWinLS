@@ -2,7 +2,7 @@ CREATE DATABASE IF NOT EXISTS inventoryDB;
 
 USE inventoryDB;
 
-CREATE TABLE `inventoryls` (
+CREATE TABLE IF NOT EXISTS `inventoryls` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `nameOS` varchar(255) NOT NULL,
   `tipoOS` varchar(50) NOT NULL,
@@ -27,6 +27,7 @@ CREATE TABLE `inventoryls` (
   `mac3` varchar(17) DEFAULT NULL, 
   `mac4` varchar(17) DEFAULT NULL, 
   `ip_principal` varchar(15),
+  `status` ENUM('green', 'red', 'orange') NOT NULL DEFAULT 'green',
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
