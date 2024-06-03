@@ -23,13 +23,13 @@ for cs in c.Win32_ComputerSystem():
 for cs in c.Win32_ComputerSystem():
     NombreSistema = cs.Name
 
-# Obtener producto de la placa base
-for bb in c.Win32_BaseBoard():
-    ProductoPlacaBase = bb.Product
-
 # Obtener información del procesador
 for processor in c.Win32_Processor():
     Procesador = processor.Name
+
+# Obtener producto de la placa base
+for bb in c.Win32_BaseBoard():
+    ProductoPlacaBase = bb.Product
 
 # Obtener información de cada banco de memoria y calcular la RAM total
 bancos_memoria = []
@@ -97,13 +97,14 @@ cursor = conn.cursor()
 
 # Insertar los datos en la tabla
 query = """
-INSERT INTO inventoryLS (nameOS, tipoOS, hostname, motherboard, totalRAM, bank1, bank2, bank3, bank4, disk1_model, disk1_capacity, disk2_model, disk2_capacity, disk3_model, disk3_capacity, disk4_model, disk4_capacity, mac1, mac2, mac3, mac4, ip_principal, date)
-VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+INSERT INTO inventoryLS (nameOS, tipoOS, hostname, processor, motherboard, totalRAM, bank1, bank2, bank3, bank4, disk1_model, disk1_capacity, disk2_model, disk2_capacity, disk3_model, disk3_capacity, disk4_model, disk4_capacity, mac1, mac2, mac3, mac4, ip_principal, date)
+VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
 """
 values = (
     NombreSO,
     TipoSistema,
     NombreSistema,
+    Procesador,
     ProductoPlacaBase,
     MemoriaRAM_total,
     bancos_memoria[0],
