@@ -86,8 +86,8 @@ if ($conn->connect_error) {
     die("Conexión fallida: " . $conn->connect_error);
 }
 
-// Consulta SQL para obtener el contenido de la tabla inventoryLS agrupado por hostname y seleccionado el más reciente según la fecha
-$sql = "SELECT * FROM inventoryLS WHERE (hostname, date) IN (SELECT hostname, MAX(date) FROM inventoryLS GROUP BY hostname)";
+// Consulta SQL para obtener el contenido de la tabla inventoryLS agrupado por hostname y seleccionado el más reciente según la fecha y ordenado por hostname
+$sql = "SELECT * FROM inventoryLS WHERE (hostname, date) IN (SELECT hostname, MAX(date) FROM inventoryLS GROUP BY hostname) ORDER BY hostname";
 $result = $conn->query($sql);
 
 // Verificar si se obtuvieron resultados
@@ -111,6 +111,7 @@ if ($result->num_rows > 0) {
         $previousQuery->execute();
         $previousResult = $previousQuery->get_result();
         $changes = [];
+        $totalRAMChanged = false;
         if ($previousResult->num_rows > 0) {
             $previousRow = $previousResult->fetch_assoc();
             
@@ -127,11 +128,16 @@ if ($result->num_rows > 0) {
                 if ($row[$field] != $previousRow[$field]) {
                     $hasChanges = true;
                     $changes[$field] = ['previous' => $previousRow[$field], 'current' => $row[$field]];
+                    if ($field == 'totalRAM') {
+                        $totalRAMChanged = true;
+                    }
                 }
             }
             
-            if ($hasChanges) {
+            if ($hasChanges && $totalRAMChanged) {
                 $boxClass = 'box blinking';
+            } elseif ($hasChanges) {
+                $boxClass = 'box green';
             }
         }
 
