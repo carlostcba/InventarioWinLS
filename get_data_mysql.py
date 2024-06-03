@@ -1,6 +1,7 @@
 import wmi
 import mysql.connector
 from datetime import datetime
+import re
 
 # Crear instancia de la clase wmi
 c = wmi.WMI()
@@ -26,6 +27,8 @@ for cs in c.Win32_ComputerSystem():
 # Obtener información del procesador
 for processor in c.Win32_Processor():
     Procesador = processor.Name
+    # Eliminar "(R)", "(TM)", y "CPU"
+    Procesador = re.sub(r'\(R\)|\(TM\)| CPU', '', Procesador).strip()
 
 # Obtener producto de la placa base
 for bb in c.Win32_BaseBoard():
