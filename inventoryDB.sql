@@ -22,10 +22,10 @@ CREATE TABLE `inventoryls` (
   `disk3_capacity` varchar(255) DEFAULT NULL,
   `disk4_model` varchar(255) DEFAULT NULL,
   `disk4_capacity` varchar(255) DEFAULT NULL,
-  `mac1` VARCHAR(17), 
-  `mac2` VARCHAR(17), 
-  `mac3` VARCHAR(17), 
-  `mac4` VARCHAR(17), 
-  `ip_principal` VARCHAR(15);
+  `mac1` varchar(17), 
+  `mac2` varchar(17), 
+  `mac3` varchar(17), 
+  `mac4` varchar(17), 
+  `ip_principal` varchar(15),
   `date` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
