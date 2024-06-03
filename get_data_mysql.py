@@ -31,40 +31,36 @@ for bb in c.Win32_BaseBoard():
 for processor in c.Win32_Processor():
     Procesador = processor.Name
 
-# Obtener memoria física instalada (RAM)
-for cs in c.Win32_ComputerSystem():
-    MemoriaRAM = round(int(cs.TotalPhysicalMemory) / (1024**3), 2)
-    if MemoriaRAM >= 1024:  # Si la memoria es mayor o igual a 1 TB
-        MemoriaRAM = round(MemoriaRAM / 1024, 2)
-        unidad_medida = "TB"
-    elif MemoriaRAM >= 1:  # Si la memoria es mayor o igual a 1 GB
-        unidad_medida = "GB"
-    else:  # Si la memoria es menor a 1 GB
-        MemoriaRAM = round(MemoriaRAM * 1024, 2)
-        unidad_medida = "MB"
-    MemoriaRAM = f"{MemoriaRAM} {unidad_medida}"
-
-# Obtener información de cada banco de memoria
+# Obtener información de cada banco de memoria y calcular la RAM total
 bancos_memoria = []
+MemoriaRAM_total = 0
 for memoria in c.Win32_PhysicalMemory():
     tamaño = round(int(memoria.Capacity) / (1024**3), 2)  # Convertir bytes a GB
     if tamaño > 0:
         bancos_memoria.append(f"{tamaño} GB")
+        MemoriaRAM_total += tamaño
 
 # Completar hasta 4 bancos de memoria con valores nulos si es necesario
 while len(bancos_memoria) < 4:
     bancos_memoria.append(None)
 
-# Obtener unidades de disco
+# Formatear MemoriaRAM_total con unidad de medida
+if MemoriaRAM_total >= 1024:  # Si la memoria es mayor o igual a 1 TB
+    MemoriaRAM_total = round(MemoriaRAM_total / 1024, 2)
+    unidad_medida = "TB"
+else:
+    unidad_medida = "GB"
+MemoriaRAM_total = f"{MemoriaRAM_total} {unidad_medida}"
+
+# Obtener unidades de disco y excluir aquellos con capacidad 0
 discos = []
 for disk in c.Win32_DiskDrive():
     modelo = disk.Model
     if disk.Size is not None:
         tamaño_gb = round(int(disk.Size) / (1024**3), 2)
-        capacidad = f"{tamaño_gb} GB"  # Agregar la unidad de medida "GB" al valor de capacidad
-    else:
-        capacidad = "0 GB"  # Si el tamaño es desconocido, se establece en 0 para excluirlo
-    discos.append((modelo, capacidad))
+        if tamaño_gb > 0:
+            capacidad = f"{tamaño_gb} GB"
+            discos.append((modelo, capacidad))
 
 # Completar hasta 4 discos con valores nulos si es necesario
 while len(discos) < 4:
@@ -109,7 +105,7 @@ values = (
     TipoSistema,
     NombreSistema,
     ProductoPlacaBase,
-    MemoriaRAM,
+    MemoriaRAM_total,
     bancos_memoria[0],
     bancos_memoria[1],
     bancos_memoria[2],
