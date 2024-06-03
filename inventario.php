@@ -27,6 +27,7 @@
             margin: 10px;
             width: 300px;
             border-radius: 8px;
+            position: relative;
         }
         .box.red {
             border-color: red;
@@ -48,6 +49,9 @@
             text-align: center;
             border-radius: 4px;
             margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .data-field {
             padding: 5px;
@@ -60,6 +64,9 @@
         }
         .previous {
             color: red;
+        }
+        .checkbox-container {
+            position: right;
         }
     </style>
 </head>
@@ -86,8 +93,8 @@ if ($conn->connect_error) {
     die("Conexión fallida: " . $conn->connect_error);
 }
 
-// Consulta SQL para obtener el contenido de la tabla inventoryLS agrupado por hostname y seleccionado el más reciente según la fecha
-$sql = "SELECT * FROM inventoryLS WHERE (hostname, date) IN (SELECT hostname, MAX(date) FROM inventoryLS GROUP BY hostname)";
+// Consulta SQL para obtener el contenido de la tabla inventoryLS agrupado por hostname y seleccionado el más reciente según la fecha y ordenado por hostname
+$sql = "SELECT * FROM inventoryLS WHERE (hostname, date) IN (SELECT hostname, MAX(date) FROM inventoryLS GROUP BY hostname) ORDER BY hostname";
 $result = $conn->query($sql);
 
 // Verificar si se obtuvieron resultados
@@ -111,6 +118,7 @@ if ($result->num_rows > 0) {
         $previousQuery->execute();
         $previousResult = $previousQuery->get_result();
         $changes = [];
+        $totalRAMChanged = false;
         if ($previousResult->num_rows > 0) {
             $previousRow = $previousResult->fetch_assoc();
             
@@ -127,18 +135,27 @@ if ($result->num_rows > 0) {
                 if ($row[$field] != $previousRow[$field]) {
                     $hasChanges = true;
                     $changes[$field] = ['previous' => $previousRow[$field], 'current' => $row[$field]];
+                    if ($field == 'totalRAM') {
+                        $totalRAMChanged = true;
+                    }
                 }
             }
             
-            if ($hasChanges) {
+            if ($hasChanges && $totalRAMChanged) {
                 $boxClass = 'box blinking';
+            } elseif ($hasChanges) {
+                $boxClass = 'box green';
             }
         }
 
         echo "<div class='$boxClass'>";
 
-        // Resaltar y centrar el hostname
-        echo "<div class='hostname'>" . $row['hostname'] . "</div>";
+        // Resaltar y centrar el hostname con el checkbox solo si es blinking o red
+        echo "<div class='hostname'>" . $row['hostname'];
+        if ($boxClass == 'box blinking' || $boxClass == 'box red') {
+            echo "<div class='checkbox-container'><input type='checkbox' onchange='toggleBlinking(this)'></div>";
+        }
+        echo "</div>";
 
         // Mostrar nameOS y tipoOS juntos
         if (!is_null($row['nameOS']) && !is_null($row['tipoOS'])) {
@@ -147,7 +164,7 @@ if ($result->num_rows > 0) {
 
         // Mostrar el procesador
         if (!is_null($row['processor'])) {
-            echo "<div class='data-field'>Processor: " . $row['processor'];
+            echo "<div class='data-field'>" . $row['processor'];
             if (isset($changes['processor'])) {
                 echo " <span class='previous'>(antes: " . $changes['processor']['previous'] . ")</span>";
             }
@@ -160,13 +177,13 @@ if ($result->num_rows > 0) {
                 // Agregar etiquetas específicas para bancos de memoria y RAM total
                 if (strpos($key, 'bank') === 0) {
                     $bankNumber = str_replace('bank', '', $key);
-                    echo "<div class='data-field'>Bank $bankNumber: $value";
+                    echo "<div class='data-field'>Slot $bankNumber: $value";
                     if (isset($changes[$key])) {
                         echo " <span class='previous'>(antes: " . $changes[$key]['previous'] . ")</span>";
                     }
                     echo "</div>";
                 } elseif ($key == 'totalRAM') {
-                    echo "<div class='data-field'>Total RAM: $value";
+                    echo "<div class='data-field'>RAM: $value";
                     if (isset($changes[$key])) {
                         echo " <span class='previous'>(antes: " . $changes[$key]['previous'] . ")</span>";
                     }
@@ -185,7 +202,7 @@ if ($result->num_rows > 0) {
         for ($i = 1; $i <= 4; $i++) {
             $bankKey = "bank$i";
             if (!isset($row[$bankKey]) && isset($previousRow[$bankKey]) && !is_null($previousRow[$bankKey])) {
-                echo "<div class='data-field change'>Bank $i: (antes: " . $previousRow[$bankKey] . ")</div>";
+                echo "<div class='data-field change'>Slot $i: (antes: " . $previousRow[$bankKey] . ")</div>";
             }
         }
 
@@ -209,6 +226,20 @@ if ($result->num_rows > 0) {
 $conn->close();
 
 ?>
+
+<!-- Script para cambiar el estado de los cuadros -->
+<script>
+    function toggleBlinking(checkbox) {
+        const box = checkbox.closest('.box');
+        if (box.classList.contains('red')) {
+            box.style.display = 'none';
+        } else if (box.classList.contains('blinking')) {
+            box.classList.remove('blinking');
+            box.classList.add('green');
+            checkbox.parentElement.style.display = 'none'; // Ocultar el checkbox después del cambio
+        }
+    }
+</script>
 
 </body>
 </html>
