@@ -31,25 +31,14 @@ for bb in c.Win32_BaseBoard():
 for processor in c.Win32_Processor():
     Procesador = processor.Name
 
-# Obtener memoria física instalada (RAM)
-for cs in c.Win32_ComputerSystem():
-    MemoriaRAM = round(int(cs.TotalPhysicalMemory) / (1024**3), 2)
-    if MemoriaRAM >= 1024:  # Si la memoria es mayor o igual a 1 TB
-        MemoriaRAM = round(MemoriaRAM / 1024, 2)
-        unidad_medida = "TB"
-    elif MemoriaRAM >= 1:  # Si la memoria es mayor o igual a 1 GB
-        unidad_medida = "GB"
-    else:  # Si la memoria es menor a 1 GB
-        MemoriaRAM = round(MemoriaRAM * 1024, 2)
-        unidad_medida = "MB"
-    MemoriaRAM = f"{MemoriaRAM} {unidad_medida}"
-
 # Obtener información de cada banco de memoria
 bancos_memoria = []
+totalRAM = 0  # Inicializar totalRAM
 for memoria in c.Win32_PhysicalMemory():
     tamaño = round(int(memoria.Capacity) / (1024**3), 2)  # Convertir bytes a GB
     if tamaño > 0:
         bancos_memoria.append(f"{tamaño} GB")
+        totalRAM += tamaño  # Sumar el tamaño al total de RAM
 
 # Completar hasta 4 bancos de memoria con valores nulos si es necesario
 while len(bancos_memoria) < 4:
@@ -81,15 +70,16 @@ cursor = conn.cursor()
 
 # Insertar los datos en la tabla
 query = """
-INSERT INTO inventoryLS (nameOS, tipoOS, hostname, motherboard, totalRAM, bank1, bank2, bank3, bank4, disk1_model, disk1_capacity, disk2_model, disk2_capacity, disk3_model, disk3_capacity, disk4_model, disk4_capacity, date)
-VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+INSERT INTO inventoryLS (nameOS, tipoOS, hostname, motherboard, processor, totalRAM, bank1, bank2, bank3, bank4, disk1_model, disk1_capacity, disk2_model, disk2_capacity, disk3_model, disk3_capacity, disk4_model, disk4_capacity, date)
+VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
 """
 values = (
     NombreSO,
     TipoSistema,
     NombreSistema,
     ProductoPlacaBase,
-    MemoriaRAM,
+    Procesador,
+    f"{totalRAM} GB",  # Formatear totalRAM con unidad GB
     bancos_memoria[0],
     bancos_memoria[1],
     bancos_memoria[2],
