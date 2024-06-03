@@ -147,7 +147,7 @@ if ($result->num_rows > 0) {
 
         // Mostrar el procesador
         if (!is_null($row['processor'])) {
-            echo "<div class='data-field'>Processor: " . $row['processor'];
+            echo "<div class='data-field'>" . $row['processor'];
             if (isset($changes['processor'])) {
                 echo " <span class='previous'>(antes: " . $changes['processor']['previous'] . ")</span>";
             }
@@ -160,13 +160,13 @@ if ($result->num_rows > 0) {
                 // Agregar etiquetas específicas para bancos de memoria y RAM total
                 if (strpos($key, 'bank') === 0) {
                     $bankNumber = str_replace('bank', '', $key);
-                    echo "<div class='data-field'>Bank $bankNumber: $value";
+                    echo "<div class='data-field'>Slot $bankNumber: $value";
                     if (isset($changes[$key])) {
                         echo " <span class='previous'>(antes: " . $changes[$key]['previous'] . ")</span>";
                     }
                     echo "</div>";
                 } elseif ($key == 'totalRAM') {
-                    echo "<div class='data-field'>Total RAM: $value";
+                    echo "<div class='data-field'>RAM: $value";
                     if (isset($changes[$key])) {
                         echo " <span class='previous'>(antes: " . $changes[$key]['previous'] . ")</span>";
                     }
@@ -185,7 +185,7 @@ if ($result->num_rows > 0) {
         for ($i = 1; $i <= 4; $i++) {
             $bankKey = "bank$i";
             if (!isset($row[$bankKey]) && isset($previousRow[$bankKey]) && !is_null($previousRow[$bankKey])) {
-                echo "<div class='data-field change'>Bank $i: (antes: " . $previousRow[$bankKey] . ")</div>";
+                echo "<div class='data-field change'>Slot $i: (antes: " . $previousRow[$bankKey] . ")</div>";
             }
         }
 
